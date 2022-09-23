@@ -1,7 +1,8 @@
-% SESSION_RANGES
+% SESSION_RANGE
 % Input
 %  tags     Cell array of ticks indicating when experiment events happen
-%  baseline The size of the desired baseline window in ticks
+%  baseline The size of the desired baseline epoch in ticks
+%  trial    The size of the trial epoch in ticks
 %  boxcar   The size of the boxcar for downsampling in ticks
 %
 % Returns
@@ -12,21 +13,20 @@
 % A tick is a discrete time-step, indexing from an initial measurement.
 % Ticks are integer values, and index directly into values in the
 % timeseries.
-function [ranges, ticks, ix] = session_ranges(tags, baseline, boxcar)
-    ranges_0 = [
-        tags{1}(1) - baseline, tags{1}(end) - trial_ticks
-        tags{2}(1) - baseline, tags{2}(end) - trial_ticks
-        tags{3}(1) - baseline, tags{3}(end) - trial_ticks
-        tags{4}(1) - baseline, tags{4}(end) - trial_ticks
+function [ranges, ticks, ix] = session_range(tags, baseline, trial, boxcar)
+    ranges = [
+        tags{1}(1) - baseline, tags{1}(end) - trial
+        tags{2}(1) - baseline, tags{2}(end) - trial
+        tags{3}(1) - baseline, tags{3}(end) - trial
+        tags{4}(1) - baseline, tags{4}(end) - trial
     ];
-    n_sessions = size(ranges_0, 1);
     
     % Small differences in session length may appear (+/- a few ms).
     % Sessions will be further truncated so that session length is a multiple
     % of boxcar window (for downsampling).
-    ticks_0 = diff(ranges_0');
+    ticks_0 = diff(ranges');
     ticks_trunc = mod(ticks_0, boxcar);
-    ranges(:, 2) = ranges_0(:, 2) - ticks_trunc(:);
+    ranges(:, 2) = ranges(:, 2) - ticks_trunc(:);
     ticks = diff(ranges');
     ticks = ticks(1);
     
