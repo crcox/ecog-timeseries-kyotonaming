@@ -3,10 +3,9 @@ function [] = plot_all_electrodes_ts(ecog, tags, vt_electrode_labels, config)
 %   Detailed explanation goes here
     vt_electrode_labels = string(vt_electrode_labels);
     electrode_labels =  strtrim(string(ecog.DIM(2).label));
-    [vt_electrode_z, vt_electrode_ix] = ismember(vt_electrode_labels, electrode_labels);
+    vt_electrode_z = ismember(electrode_labels, vt_electrode_labels);
     ecog.DATA = ecog.DATA(:, vt_electrode_z); % drop electrodes not in the vTL
-    [~, vt_electrode_sort] = sort(vt_electrode_ix);
-    vt_electrode_labels = vt_electrode_labels(vt_electrode_sort);
+    vt_electrode_labels = electrode_labels(vt_electrode_z);
     n_electrodes = size(ecog.DATA, 2);
 
     Hz = 1 / ecog.DIM(1).interval;
@@ -39,14 +38,13 @@ function [] = plot_all_electrodes_ts(ecog, tags, vt_electrode_labels, config)
     lastpage_ticks = mod(session_ticks, plot_window_ticks * config.plots_per_page);
     pages = ((session_ticks - lastpage_ticks) / (plot_window_ticks * config.plots_per_page)) + 1;
 
-    fig = figure();
+    fig = figure("Visible","off");
     set(fig, 'Units', 'inches', 'Position', [0, 0, 8, 11.5], 'PaperUnits', 'inches', 'PaperSize', [8, 11.5]);
     axes = gobjects(config.plots_per_page, 1);
     for session_index = 1:n_sessions
-        for electrode = 1:n_electrodes
-            electrode_index = vt_electrode_ix(electrode);
-            electrode_label = vt_electrode_labels(electrode);
-            fig_dir = fullfile("figures", config.subject_label, electrode_label);
+        for electrode_index = 1:n_electrodes
+            electrode_label = vt_electrode_labels(electrode_index);
+            fig_dir = fullfile("figures", "timeseries", config.subject_label, electrode_label);
             
             if not(isfolder(fig_dir))
                 mkdir(fig_dir);
@@ -92,6 +90,9 @@ function [] = plot_all_electrodes_ts(ecog, tags, vt_electrode_labels, config)
                 linkaxes(axes, 'y');
                 fig_path = fullfile(fig_dir, sprintf("sub-%s_sess-%d_elec-%s_label-ts_page-%03d.pdf", config.subject_label, session_index, electrode_label, page));
                 print(fig_path, '-dpdf');
+                for i = 1:4
+                    cla(axes(i), 'reset');
+                end
             end
         end
     end

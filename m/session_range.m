@@ -15,17 +15,19 @@
 % timeseries.
 function [ranges, ticks, ix] = session_range(tags, baseline, trial, boxcar)
     ranges = [
-        tags{1}(1) - baseline, tags{1}(end) - trial
-        tags{2}(1) - baseline, tags{2}(end) - trial
-        tags{3}(1) - baseline, tags{3}(end) - trial
-        tags{4}(1) - baseline, tags{4}(end) - trial
+        tags{1}(1) - baseline, tags{1}(end) + (2 * trial)
+        tags{2}(1) - baseline, tags{2}(end) + (2 * trial)
+        tags{3}(1) - baseline, tags{3}(end) + (2 * trial)
+        tags{4}(1) - baseline, tags{4}(end) + (2 * trial)
     ];
     
     % Small differences in session length may appear (+/- a few ms).
     % Sessions will be further truncated so that session length is a multiple
     % of boxcar window (for downsampling).
     ticks_0 = diff(ranges');
-    ticks_trunc = mod(ticks_0, boxcar);
+    ranges(:, 2) = ranges(:, 2) - (ticks_0 - min(ticks_0))';
+    ticks_1 = diff(ranges');
+    ticks_trunc = mod(ticks_1, boxcar);
     ranges(:, 2) = ranges(:, 2) - ticks_trunc(:);
     ticks = diff(ranges');
     ticks = ticks(1);
